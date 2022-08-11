@@ -288,7 +288,7 @@ static inline uint32_t swap(uint32_t n)
 #if TARGET_PLAYDATE
 	//return __REV(n);
 	uint32_t result;
-	
+
 	__asm volatile ("rev %0, %1" : "=l" (result) : "l" (n));
 	return(result);
 #else
@@ -307,55 +307,55 @@ drawFragment(uint32_t* row, int x1, int x2, uint32_t color)
 {
 	if ( x2 < VIEWPORT_LEFT || x1 >= VIEWPORT_RIGHT )
 		return;
-	
+
 	if ( x1 < VIEWPORT_LEFT )
 		x1 = VIEWPORT_LEFT;
-	
+
 	if ( x2 > VIEWPORT_RIGHT )
 		x2 = VIEWPORT_RIGHT;
-	
+
 	if ( x1 > x2 )
 		return;
-	
+
 	// Operate on 32 bits at a time
-	
+
 	int startbit = x1 % 32;
 	uint32_t startmask = swap((1 << (32 - startbit)) - 1);
 	int endbit = x2 % 32;
 	uint32_t endmask = swap(((1 << endbit) - 1) << (32 - endbit));
-	
+
 	int col = x1 / 32;
 	uint32_t* p = row + col;
 
 	if ( col == x2 / 32 )
 	{
 		uint32_t mask = 0;
-		
+
 		if ( startbit > 0 && endbit > 0 )
 			mask = startmask & endmask;
 		else if ( startbit > 0 )
 			mask = startmask;
 		else if ( endbit > 0 )
 			mask = endmask;
-		
+
 		_drawMaskPattern(p, mask, color);
 	}
 	else
 	{
 		int x = x1;
-		
+
 		if ( startbit > 0 )
 		{
 			_drawMaskPattern(p++, startmask, color);
 			x += (32 - startbit);
 		}
-		
+
 		while ( x + 32 <= x2 )
 		{
 			_drawMaskPattern(p++, 0xffffffff, color);
 			x += 32;
 		}
-		
+
 		if ( endbit > 0 )
 			_drawMaskPattern(p, endmask, color);
 	}
@@ -389,18 +389,18 @@ drawFragment(uint32_t* row, int x1, int x2, uint32_t color)
 			#if ENABLE_TEXTURES_MASK
 				#define RENDER RZ | RT | RA | RG | RL | RP
 				#include "render.inc"
-				
+
 				#define RENDER RZ | RT | RA | RG | RP
 				#include "render.inc"
 			#endif
-			
+
 			#define RENDER RZ | RT | RG | RL | RP
 			#include "render.inc"
-			
+
 			#define RENDER RZ | RT | RG | RP
 			#include "render.inc"
 		#endif
-		
+
 		#if ENABLE_TEXTURES && ENABLE_TEXTURES_MASK
 			#define RENDER RZ | RT | RA | RP
 			#include "render.inc"
@@ -428,18 +428,18 @@ drawFragment(uint32_t* row, int x1, int x2, uint32_t color)
 		#if ENABLE_TEXTURES_MASK
 			#define RENDER RZ | RT | RA | RG | RL
 			#include "render.inc"
-			
+
 			#define RENDER RZ | RT | RA | RG
 			#include "render.inc"
 		#endif
-		
+
 		#define RENDER RZ | RT | RG | RL
 		#include "render.inc"
-		
+
 		#define RENDER RZ | RT | RG
 		#include "render.inc"
 	#endif
-	
+
 	#if ENABLE_TEXTURES && ENABLE_TEXTURES_MASK
 		#define RENDER RZ | RT | RA
 		#include "render.inc"
@@ -455,7 +455,7 @@ static inline int32_t slope(float x1, float y1, float x2, float y2, const int sh
 {
 	float dx = x2-x1;
 	float dy = y2-y1;
-	
+
 	if ( dy < 1 )
 		return dx * (1<<shift);
 	else
@@ -480,7 +480,7 @@ static inline int64_t slope64(float x1, float y1, float x2, float y2, const int 
 {
 	float dx = x2-x1;
 	float dy = y2-y1;
-	
+
 	if ( dy < 1 )
 		return dx * ((int64_t)(1)<<shift);
 	else
@@ -500,13 +500,13 @@ drawLine_zbuf(uint8_t* bitmap, int rowstride, Point3D* p1, Point3D* p2, int thic
 
 	int y = p1->y;
 	int endy = p2->y;
-	
+
 	if ( y >= VIEWPORT_HEIGHT || y < VIEWPORT_TOP || MIN(p1->x, p2->x) >= VIEWPORT_RIGHT || MAX(p1->x, p2->x) < VIEWPORT_LEFT )
 		return (LCDRowRange){ 0, 0 };
-	
+
 	int32_t x = p1->x * (1<<16);
 	int32_t dx = slope(p1->x, p1->y, p2->x, p2->y + 1, 16);
-	
+
 	// move lines a bit forward so they don't get buried in solid geometry
 	float z1 = zscale / (p1->z + Z_BIAS) + 256;
 	float z2 = zscale / (p2->z + Z_BIAS) + 256;
@@ -524,7 +524,7 @@ drawLine_zbuf(uint8_t* bitmap, int rowstride, Point3D* p1, Point3D* p2, int thic
 		z += (VIEWPORT_TOP-y) * dzdy;
 		y = VIEWPORT_TOP;
 	}
-	
+
 	while ( y <= endy )
 	{
 		uint8_t p = pattern[y%8];
@@ -544,10 +544,10 @@ drawLine_zbuf(uint8_t* bitmap, int rowstride, Point3D* p1, Point3D* p2, int thic
 
 		if ( ++y == VIEWPORT_BOTTOM )
 			break;
-		
+
 		x = x1;
 	}
-	
+
 	return (LCDRowRange){ MAX(VIEWPORT_TOP, p1->y), MIN(VIEWPORT_BOTTOM, p2->y) };
 }
 #endif
@@ -564,13 +564,13 @@ drawLine(uint8_t* bitmap, int rowstride, Point3D* p1, Point3D* p2, int thick, ui
 
 	int y = p1->y;
 	int endy = p2->y;
-	
+
 	if ( y >= VIEWPORT_BOTTOM || endy < VIEWPORT_TOP || MIN(p1->x, p2->x) >= VIEWPORT_RIGHT || MAX(p1->x, p2->x) < VIEWPORT_LEFT )
 		return (LCDRowRange){ 0, 0 };
-	
+
 	int32_t x = p1->x * (1<<16);
 	int32_t dx = slope(p1->x, p1->y, p2->x, p2->y, 16);
-	
+
 	if ( y < VIEWPORT_TOP )
 	{
 		x += (VIEWPORT_TOP-y) * dx;
@@ -582,25 +582,25 @@ drawLine(uint8_t* bitmap, int rowstride, Point3D* p1, Point3D* p2, int thick, ui
 		uint8_t p = pattern[y%8];
 		uint32_t color = (p<<24) | (p<<16) | (p<<8) | p;
 		int32_t x1 = (y < endy) ? x+dx : p2->x * (1<<16);
-		
+
 		if ( dx < 0 )
 			drawFragment((uint32_t*)&bitmap[y*rowstride], x1>>16, (x>>16) + thick, color);
 		else
 			drawFragment((uint32_t*)&bitmap[y*rowstride], x>>16, (x1>>16) + thick, color);
-		
+
 		if ( ++y == VIEWPORT_BOTTOM )
 			break;
 
 		x = x1;
 	}
-	
+
 	return (LCDRowRange){ MAX(VIEWPORT_TOP, p1->y), MIN(VIEWPORT_BOTTOM, p2->y) };
 }
 
 static void fillRange(uint8_t* bitmap, int rowstride, int y, int endy, int32_t* x1p, int32_t dx1, int32_t* x2p, int32_t dx2, uint8_t pattern[8])
 {
 	int32_t x1 = *x1p, x2 = *x2p;
-	
+
 	if ( endy < VIEWPORT_TOP )
 	// early-out
 	{
@@ -609,29 +609,29 @@ static void fillRange(uint8_t* bitmap, int rowstride, int y, int endy, int32_t* 
 		*x2p = x2 + dy * dx2;
 		return;
 	}
-	
+
 	if ( y < VIEWPORT_TOP )
 	{
 		x1 += (VIEWPORT_TOP-y) * dx1;
 		x2 += (VIEWPORT_TOP-y) * dx2;
 		y = VIEWPORT_TOP;
 	}
-	
+
 	while ( y < endy )
 	{
 		if (interlacePermitsRow(y) || ENABLE_INTERLACE == 2)
 		{
 			uint8_t p = pattern[y%8];
 			uint32_t color = (p<<24) | (p<<16) | (p<<8) | p;
-			
+
 			drawFragment((uint32_t*)&bitmap[y*rowstride], (x1>>16), (x2>>16)+1, color);
-			
+
 			x1 += dx1;
 			x2 += dx2;
 			++y;
 		}
 	}
-	
+
 	*x1p = x1;
 	*x2p = x2;
 }
@@ -643,7 +643,7 @@ static inline void sortTri_t(
 )
 {
 	float y1 = (*p1)->y, y2 = (*p2)->y, y3 = (*p3)->y;
-	
+
 	if ( y1 <= y2 && y1 < y3 )
 	{
 		if ( y3 < y2 ) // 1,3,2
@@ -675,7 +675,7 @@ static inline void sortTri_t(
 		Point3D* tmp = *p1;
 		Point2D tmpt = *t1;
 		*p1 = *p3; *t1 = *t3;
-		
+
 		if ( y1 < y2 ) // 3,1,2
 		{
 			*p3 = *p2; *t3 = *t2;
@@ -694,7 +694,7 @@ static inline void sortTri(
 )
 {
 	float y1 = (*p1)->y, y2 = (*p2)->y, y3 = (*p3)->y;
-	
+
 	if ( y1 <= y2 && y1 < y3 )
 	{
 		if ( y3 < y2 ) // 1,3,2
@@ -721,7 +721,7 @@ static inline void sortTri(
 	{
 		Point3D* tmp = *p1;
 		*p1 = *p3;
-		
+
 		if ( y1 < y2 ) // 3,1,2
 		{
 			*p3 = *p2;
@@ -735,31 +735,31 @@ static inline void sortTri(
 LCDRowRange fillTriangle(uint8_t* bitmap, int rowstride, Point3D* p1, Point3D* p2, Point3D* p3, uint8_t pattern[8])
 {
 	// sort by y coord
-	
+
 	sortTri(&p1, &p2, &p3);
-	
+
 	#if ENABLE_RENDER_DISTANCE_MAX == 1
 	if (render_distance_bounds(p1, p2, p3)) return (LCDRowRange){ 0, 0 };;
 	#endif
-	
+
 	int endy = MIN(VIEWPORT_BOTTOM, p3->y);
-	
+
 	if ( p1->y > VIEWPORT_BOTTOM || endy < VIEWPORT_TOP )
 		return (LCDRowRange){ 0, 0 };
 
 	int32_t x1 = p1->x * (1<<16);
 	int32_t x2 = x1;
-	
+
 	int32_t sb = slope(p1->x, p1->y, p2->x, p2->y, 16);
 	int32_t sc = slope(p1->x, p1->y, p3->x, p3->y, 16);
 
 	int32_t dx1 = MIN(sb, sc);
 	int32_t dx2 = MAX(sb, sc);
-	
+
 	fillRange(bitmap, rowstride, p1->y, MIN(VIEWPORT_BOTTOM, p2->y), &x1, dx1, &x2, dx2, pattern);
-	
+
 	int dx = slope(p2->x, p2->y, p3->x, p3->y, 16);
-	
+
 	if ( sb < sc )
 	{
 		x1 = p2->x * (1<<16);
@@ -770,7 +770,7 @@ LCDRowRange fillTriangle(uint8_t* bitmap, int rowstride, Point3D* p1, Point3D* p
 		x2 = p2->x * (1<<16);
 		fillRange(bitmap, rowstride, p2->y, endy, &x1, dx1, &x2, dx, pattern);
 	}
-	
+
 	return (LCDRowRange){ MAX(VIEWPORT_TOP, p1->y), endy };
 }
 
@@ -778,14 +778,14 @@ LCDRowRange fillTriangle(uint8_t* bitmap, int rowstride, Point3D* p1, Point3D* p
 LCDRowRange fillTriangle_zbuf(uint8_t* bitmap, int rowstride, Point3D* p1, Point3D* p2, Point3D* p3, uint8_t pattern[8])
 {
 	sortTri(&p1, &p2, &p3);
-	
+
 	#if ENABLE_RENDER_DISTANCE_MAX == 1
 	if (render_distance_bounds(p1, p2, p3)) return (LCDRowRange){ 0, 0 };
 	#endif
-	
+
 	int endy = MIN(VIEWPORT_BOTTOM, p3->y);
 	int det = (p3->x - p1->x) * (p2->y - p1->y) - (p2->x - p1->x) * (p3->y - p1->y);
-	
+
 	if ( p1->y > VIEWPORT_BOTTOM || endy < VIEWPORT_TOP || det == 0 )
 		return (LCDRowRange){ 0, 0 };
 
@@ -797,7 +797,7 @@ LCDRowRange fillTriangle_zbuf(uint8_t* bitmap, int rowstride, Point3D* p1, Point
 
 	int32_t dx1 = MIN(sb,sc);
 	int32_t dx2 = MAX(sb,sc);
-	
+
 	float z1 = zscale / (p1->z + Z_BIAS);
 	float z2 = zscale / (p2->z + Z_BIAS);
 	float z3 = zscale / (p3->z + Z_BIAS);
@@ -817,7 +817,7 @@ LCDRowRange fillTriangle_zbuf(uint8_t* bitmap, int rowstride, Point3D* p1, Point
 		dzdx = slope(z2, p2->x, mz, mx, 16);
 		dzdy = slope(z1, p1->y, z2, p2->y, 16);
 	}
-	
+
 	#ifdef ZCOORD_INT
 	zcoord_t z = z1 * (1 << ZSHIFT);
 	#else
@@ -825,7 +825,7 @@ LCDRowRange fillTriangle_zbuf(uint8_t* bitmap, int rowstride, Point3D* p1, Point
 	#endif
 
 	fillRange_z(bitmap, rowstride, p1->y, MIN(VIEWPORT_BOTTOM, p2->y), &x1, dx1, &x2, dx2, &z, dzdy, dzdx, pattern);
-	
+
 	int dx = slope(p2->x, p2->y, p3->x, p3->y, 16);
 
 	if ( sb < sc )
@@ -840,7 +840,7 @@ LCDRowRange fillTriangle_zbuf(uint8_t* bitmap, int rowstride, Point3D* p1, Point
 		x2 = p2->x * (1<<16);
 		fillRange_z(bitmap, rowstride, p2->y, endy, &x1, dx1, &x2, dx, &z, dzdy, dzdx, pattern);
 	}
-	
+
 	return (LCDRowRange){ MAX(VIEWPORT_TOP, p1->y), endy };
 }
 #endif
@@ -860,7 +860,7 @@ projective_ratio_test(Point3D* p1, Point3D* p2, Point3D* p3)
 {
 	float zmin = MIN(p1->z, MIN(p2->z, p3->z));
 	float zmax = MAX(p1->z, MAX(p2->z, p3->z));
-	
+
 	#if TEXTURE_PERSPECTIVE_MAPPING == 1
 		return 1; // always.
 	#elif TEXTURE_PERSPECTIVE_MAPPING == 2
@@ -872,15 +872,15 @@ projective_ratio_test(Point3D* p1, Point3D* p2, Point3D* p3)
 		float area2 = (p1->x * p2->y + p2->x * p3->y + p3->x * p1->y
 					-p1->y * p2->x - p2->y * p3->x - p3->y * p1->x);
 		area2 = fabsf(area2);
-		
+
 		return (area2 * zmax > zmin * TEXTURE_PROJECTIVE_AREA_FACTOR);
 	#elif TEXTURE_PERSPECTIVE_MAPPING == 4
-	
+
 		// manhattan-circumference of triangle
 		float circumference =
 			fabsf(p1->x - p2->x) + fabsf(p3->x - p2->x) + fabsf(p3->x - p1->x)
 			+ fabsf(p1->y - p2->y) + fabsf(p3->y - p2->y) + fabsf(p3->y - p1->y);
-		
+
 		#if TEXTURE_PERSPECTIVE_MAPPING_SPLIT
 			return ((circumference / TEXTURE_PROJECTIVE_LENGTH_FACTOR) * zmax - zmin) / (1 << 6);
 		#else
@@ -915,36 +915,36 @@ static inline int splitTriangleProjective(
 		Point3D* tmp = p1;
 		p1 = p3;
 		p3 = tmp;
-		
+
 		Point2D* tmpt = t1;
 		t1 = t3;
 		t3 = tmpt;
 	}
-	
+
 	// find point between p1, p3
 	Point3D p4 = {
 		p1->x * f + p3->x * (1 - f),
 		p1->y * f + p3->y * (1 - f),
 		p1->z * f + p3->z * (1 - f),
 	};
-	
+
 	Point2D t4 = {
 		t1->x * f + t3->x * (1 - f),
 		t1->y * f + t3->y * (1 - f),
 	};
-	
-	// output: 
+
+	// output:
 	// affine (z far)
 	p1a = *p1; p2a = *p2; p3a = p4;
 	t1a = *t1; t2a = *t2; t3a = t4;
-	
+
 	// perpsective-correct (z near)
-	
+
 	p1b = p4; p2b = *p2; p3b = *p3;
 	t1b = t4; t2b = *t2; t3b = *t3;
-	
+
 	return 1;
-}	
+}
 #endif
 
 #endif
@@ -968,16 +968,16 @@ LCDRowRange fillTriangle_zt(
 )
 {
 	sortTri_t(&p1, &p2, &p3, &t1, &t2, &t3);
-	
+
 	#if ENABLE_RENDER_DISTANCE_MAX
 	if (render_distance_bounds(p1, p2, p3)) return (LCDRowRange){ 0, 0 };
 	#endif
-	
+
 	int endy = MIN(VIEWPORT_BOTTOM, p3->y);
 	int det = (p3->x - p1->x) * (p2->y - p1->y) - (p2->x - p1->x) * (p3->y - p1->y);
 	if ( p1->y > VIEWPORT_BOTTOM || endy < VIEWPORT_TOP || det == 0 )
 		return (LCDRowRange){ 0, 0 };
-	
+
 	#if TEXTURE_PERSPECTIVE_MAPPING
 	projective_ratio_test_result_t prt_factor;
 	int do_projective_split = 0;
@@ -996,12 +996,12 @@ LCDRowRange fillTriangle_zt(
 				prt_factor,
 				p1, p2, p3, &t1, &t2, &t3
 			);
-			
+
 			if (do_projective_split)
 			{
 				p1 = &p1b; p2 = &p2b; p3 = &p3b;
 				t1 = t1b; t2 = t2b; t3 = t3b;
-				
+
 				sortTri_t(&p1, &p2, &p3, &t1, &t2, &t3);
 			}
 		}
@@ -1010,14 +1010,14 @@ LCDRowRange fillTriangle_zt(
 		#endif
 	}
 	#endif
-	
+
 	// scale points to texture size
 	int width, height, fmt;
 	Texture_getData(texture, &width, &height, NULL, NULL, &fmt, NULL);
 	t1.x *= width; t1.y *= height;
 	t2.x *= width; t2.y *= height;
 	t3.x *= width; t3.y *= height;
-	
+
 	int32_t x1 = p1->x * (1<<16);
 	int32_t x2 = x1;
 
@@ -1026,11 +1026,11 @@ LCDRowRange fillTriangle_zt(
 
 	int32_t dx1 = MIN(sb,sc);
 	int32_t dx2 = MAX(sb,sc);
-	
+
 	float z1 = zscale / (p1->z + Z_BIAS);
 	float z2 = zscale / (p2->z + Z_BIAS);
 	float z3 = zscale / (p3->z + Z_BIAS);
-	
+
 	#if TEXTURE_PERSPECTIVE_MAPPING
 	float w1;
 	float w2;
@@ -1059,7 +1059,7 @@ LCDRowRange fillTriangle_zt(
 	float v2 = t2.y * w2;
 	float u3 = t3.x * w3;
 	float v3 = t3.y * w3;
-	
+
 	float mx = p1->x + (p2->y-p1->y) * (p3->x-p1->x) / (p3->y-p1->y);
 	float mz = z1 + (p2->y-p1->y) * (z3-z1) / (p3->y-p1->y);
 	float mu = u1 + (p2->y-p1->y) * (u3-u1) / (p3->y-p1->y);
@@ -1108,21 +1108,21 @@ LCDRowRange fillTriangle_zt(
 		}
 		#endif
 	}
-	
+
 	zcoord_t z = z1 * (1<<ZSHIFT);
 	uvw_int2_t u = u1 * ((uvw_int2_t)(1)<<UV_SHIFT);
 	uvw_int2_t v = v1 * ((uvw_int2_t)(1)<<UV_SHIFT);
 	#if TEXTURE_PERSPECTIVE_MAPPING
 	uvw_int2_t w = w1 * ((uvw_int2_t)(1)<<W_SHIFT);
 	#endif
-	
+
 	#if ENABLE_TEXTURES_GREYSCALE
 		// map lighting to range 0-255
 		uint8_t u8lightp = CLAMP(0.0f, 1.0f, lighting_weight) * 255.99f;
 		uint8_t u8light = CLAMP(0.0f, 1.0f, lighting) * (LIGHTING_PATTERN_COUNT - 0.001f);
 		// precompute
 		u8light = (((uint16_t)u8light * u8lightp) + 0x80) >> 8;
-		
+
 		#define fillRange_zt_or_ztg(fname, fname_g, ...) \
 			if (u8lightp == 0 && fmt == 0) \
 			{ \
@@ -1135,7 +1135,7 @@ LCDRowRange fillTriangle_zt(
 	#else
 		#define fillRange_zt_or_ztg(fname, fname_g, ...) fname(__VA_ARGS__)
 	#endif
-	
+
 	#if TEXTURE_PERSPECTIVE_MAPPING
 		#define fillRange_zt_or_ztp(...) \
 		if (projective) \
@@ -1160,7 +1160,7 @@ LCDRowRange fillTriangle_zt(
 		, scanline
 		#endif
 	);
-	
+
 	int dx = slope(p2->x, p2->y, p3->x, p3->y, 16);
 
 	if ( sb < sc )
@@ -1202,13 +1202,13 @@ LCDRowRange fillTriangle_zt(
 			#endif
 		);
 	}
-	
+
 	#if TEXTURE_PERSPECTIVE_MAPPING && TEXTURE_PERSPECTIVE_MAPPING_SPLIT
 	if (do_projective_split)
 	{
 		// we have split this triangle, and drawn only part of it so far.
 		// now draw the rest.
-		
+
 		fillTriangle_zt(
 			bitmap, rowstride,
 			&p1a, &p2a, &p3a,
@@ -1226,7 +1226,7 @@ LCDRowRange fillTriangle_zt(
 		);
 	}
 	#endif
-		
+
 	return (LCDRowRange){ MAX(0, p1->y), endy };
 }
 #endif
@@ -1315,6 +1315,18 @@ void render_zbuff(uint8_t* out, int rowstride)
 			{
 				out[pixi] |= mask;
 			}
+		}
+	}
+}
+
+void render_zbuff2(uint8_t* out, int rowstride)
+{
+	for (uint16_t x = VIEWPORT_LEFT; x < VIEWPORT_RIGHT; ++x)
+	{
+		for (uint16_t y = VIEWPORT_TOP; y < VIEWPORT_BOTTOM; ++y)
+		{
+			uint16_t pixi = (y * rowstride) + x;
+			out[pixi] = *ZBUF_IDX(x, y);
 		}
 	}
 }

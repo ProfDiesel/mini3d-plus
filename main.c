@@ -11,12 +11,17 @@
 #include <pd_api.h>
 #include "luaglue.h"
 
+#if TARGET_SIMULATOR
+#include <render.h>
+#include <second_screen.h>
+#endif
+
+
 #ifdef _WINDLL
 #define DllExport __declspec(dllexport)
 #else
 #define DllExport
 #endif
-
 
 #ifdef MINI3D_AS_LIBRARY
 	int
@@ -27,8 +32,13 @@
 #endif
 (PlaydateAPI* playdate, PDSystemEvent event, uint32_t arg)
 {
-	if ( event == kEventInitLua )
-		register3D(playdate);
-	
-	return 0;
+#if TARGET_SIMULATOR
+	if (event == kEventInit)
+		second_screen_init(&render_zbuff2);
+#endif
+
+	 if (event == kEventInitLua)
+		 register3D(playdate);
+
+	 return 0;
 }

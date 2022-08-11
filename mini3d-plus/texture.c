@@ -236,18 +236,18 @@ static void Texture_free(Texture* t)
         pd->graphics->freeBitmap(Texture_getLCDBitmap(t));
     }
     
-    m3d_free(Texture_refCount(t));
+    m3d_free(Texture_refCountPtr(t));
 }
 
 Texture* Texture_ref(Texture* t)
 {
-    (*Texture_refCount(t))++;
+    (*Texture_refCountPtr(t))++;
     return t;
 }
 
 void Texture_unref(Texture* t)
 {
-    if (--(*Texture_refCount(t)) == 0)
+    if (--(*Texture_refCountPtr(t)) == 0)
     {
         Texture_free(t);
     }

@@ -58,7 +58,9 @@ Texture_getData(Texture* t, int* width, int* height, int* rowbytes, int* hasmask
 {
     if (Texture_isLCDBitmap(t))
     {
-        pd->graphics->getBitmapData(Texture_getLCDBitmap(t), width, height, rowbytes, hasmask, data);
+        uint8_t *mask = NULL;
+        pd->graphics->getBitmapData(Texture_getLCDBitmap(t), width, height, rowbytes, &mask, data);
+        if(hasmask) *hasmask = mask != NULL;
         if (fmt) *fmt = 0;
     }
     else
@@ -92,7 +94,7 @@ Texture_getLCDBitmap(Texture* t)
 }
 
 static inline void
-Texture_getData(Texture* t, int* width, int* height, int* rowbytes, int* hasmask, int* fmt, uint8_t** data)
+Texture_getData(Texture* t, int* width, int* height, int* rowbytes, uint8_t** hasmask, int* fmt, uint8_t** data)
 {
     pd->graphics->getBitmapData(Texture_getLCDBitmap(t), width, height, rowbytes, hasmask, data);
     if (fmt) *fmt = 0;
@@ -107,7 +109,7 @@ Texture* Texture_loadFromPath(const char* path, int greyscale, const char** oute
 Texture* Texture_fromLCDBitmap(LCDBitmap* l);
 
 static inline
-uint32_t* Texture_refCount(Texture* t)
+uint32_t* Texture_refCountPtr(Texture* t)
 {
     return (uint32_t*)((uintptr_t)t & ~1) - 1;
 }

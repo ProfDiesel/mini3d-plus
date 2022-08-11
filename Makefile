@@ -37,13 +37,14 @@ SRC += \
 	$(SELF_DIR)/mini3d-plus/pattern.c \
 	$(SELF_DIR)/mini3d-plus/image/miniz.c \
 	$(SELF_DIR)/mini3d-plus/image/spng.c \
+	$(SELF_DIR)/mini3d-plus/second_screen/second_screen.c \
 	$(SELF_DIR)/luaglue.c
 
 # List all user directories here
-UINCDIR += $(SELF_DIR)/mini3d-plus
+UINCDIR += $(SELF_DIR)/mini3d-plus $(SELF_DIR)/mini3d-plus/second_screen 
 
 # List all user C define here, like -D_DEBUG=1
-UDEFS += -DPLAYDATE=1
+UDEFS += -DPLAYDATE=1 
 
 # Define ASM defines here
 UADEFS +=
@@ -55,14 +56,15 @@ ULIBDIR +=
 ULIBS +=
 
 #CLANGFLAGS = -fsanitize=address
+UDEFS = 
 
-ifneq ("$(wildcard $(SELF_DIR)/librif/src/)","")
-SRC += \
-	$(SELF_DIR)/librif/src/librif.c \
-	$(SELF_DIR)/librif/src/playdate/librif_luaglue.c
-	CLANGFLAGS += -I$(SELF_DIR)/librif/src/ -DPLAYDATE=1
-	UDEFS += -DM3D_LIBRIF
-	UINCDIR += $(SELF_DIR)/librif/src
-endif
+# ifneq ("$(wildcard $(SELF_DIR)/librif/src/)","")
+# SRC += \
+# 	$(SELF_DIR)/librif/src/librif.c \
+# 	$(SELF_DIR)/librif/src/playdate/librif_luaglue.c
+# 	CLANGFLAGS += -I$(SELF_DIR)/librif/src/ -DPLAYDATE=1
+# 	UDEFS += -DM3D_LIBRIF
+# 	UINCDIR += $(SELF_DIR)/librif/src
+# endif
 
 include $(SDK)/C_API/buildsupport/common.mk

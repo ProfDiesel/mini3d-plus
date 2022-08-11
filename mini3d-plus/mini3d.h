@@ -22,7 +22,7 @@
 // intersecting geometry in the scene.
 // This is not as well-supported as the z buffer. Some glitches may occur when using it.
 #ifndef ENABLE_ORDERING_TABLE
-    #define ENABLE_ORDERING_TABLE 0
+    #define ENABLE_ORDERING_TABLE 1
 #endif
 
 // ------
@@ -160,7 +160,7 @@
 // you must also call lib3d.interlace.enable(1) to set this from lua. (!)
 // set this to 2 to only interlace textures
 #ifndef ENABLE_INTERLACE
-    #define ENABLE_INTERLACE 0
+    #define ENABLE_INTERLACE 1
 #endif
 
 // interlace row width is 2 to the power of this number
@@ -240,6 +240,10 @@ int mini3d_eventHandler(PlaydateAPI* playdate, PDSystemEvent event, uint32_t arg
 
 #if !defined(CLAMP)
 #define CLAMP(a, b, x) (MAX(a, MIN(b, x)))
+#endif
+
+#if !defined(PD_LOG)
+#define PD_LOG pd->system->logToConsole
 #endif
 
 #endif /* mini3d_h */

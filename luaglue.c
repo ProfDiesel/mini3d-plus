@@ -17,6 +17,9 @@
 #include "texture.h"
 #include "pattern.h"
 
+#include "second_screen.h"
+
+
 #ifndef M_PI
 	#define M_PI 3.1415926535f
 #endif
@@ -39,6 +42,13 @@ static const lua_reg lib3DTexture[];
 #if ENABLE_CUSTOM_PATTERNS
 static const lua_reg lib3DPattern[];
 #endif
+
+static int second_screen_schedule_redraw(lua_State* L)
+{
+	second_screen_invalidate();
+	return 0;
+}
+
 
 void register3D(PlaydateAPI* playdate)
 {
@@ -79,6 +89,9 @@ void register3D(PlaydateAPI* playdate)
 	if ( !pd->lua->registerClass("lib3d.pattern", lib3DPattern, NULL, 0, &err) )
 		pd->system->logToConsole("%s:%i: registerClass failed, %s", __FILE__, __LINE__, err);
 	#endif
+
+	if ( !pd->lua->addFunction(second_screen_schedule_redraw, "second_screen.schedule_redraw", &err) )
+		pd->system->logToConsole("%s:%i: registerClass failed, %s", __FILE__, __LINE__, err);
 	
 	mini3d_setRealloc(pd->system->realloc);
 }
@@ -153,13 +166,13 @@ clear_backbuff_interlaced(void)
 }
 #endif
 
+#if ENABLE_Z_BUFFER
 static int _prefetch_zbuf(lua_State* L)
 {
-	#if ENABLE_Z_BUFFER
 	prefetch_zbuf();
-	#endif
 	return 0;
 }
+#endif
 
 static int scene_draw(lua_State* L)
 {
@@ -344,7 +357,9 @@ static const lua_reg lib3DScene[] =
 	{ "getCameraScale",		scene_getCameraScale },
 	{ "getCameraTarget",	scene_getCameraTarget },
 	{ "getCameraUp",		scene_getCameraUp },
+#if ENABLE_Z_BUFFER
 	{ "prefetchZBuff", _prefetch_zbuf},
+#endif
 	{ NULL,				NULL }
 };
 
@@ -1404,3 +1419,4 @@ static const lua_reg lib3DPattern[] =
 	{NULL, NULL}
 };
 #endif
+

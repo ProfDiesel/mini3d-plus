@@ -7,6 +7,7 @@ local atan2 <const> = math.atan2
 local abs <const> = math.abs
 local dt = 0
 local VMULT <const> = 20.0
+local freeze = false
 
 local function clamp(x, a, b)
     if x < a then
@@ -54,7 +55,7 @@ if lib3d.pattern then
 end
 
 if lib3d.texture then
-    --banner:setTexture("assets/flag.png.u", true)
+    banner:setTexture("assets/flag.png.u", true)
 end
     
 local function swap(a, i, j)
@@ -91,16 +92,16 @@ if j then
         f_idx = terrain:addFace(
             table.unpack(face_vertices(face, 0.2))
         )
-        if lib3d.texture then
-            if (f_idx ~= 0) then
-            terrain:setFaceTextureMap(
-                f_idx,
-                0, 0,
-                1, 0,
-                1, 1,
-                0, 1
-            ) end
-        end
+        -- if lib3d.texture then
+        --     if (f_idx ~= 0) then
+        --     terrain:setFaceTextureMap(
+        --         f_idx,
+        --         0, 0,
+        --         1, 0,
+        --         1, 1,
+        --         0, 1
+        --     ) end
+        -- end
     end
     for _, face in ipairs(j["banner"]) do
         f_idx = banner:addFace(
@@ -127,7 +128,10 @@ end
 j = nil -- clean up
 
 n2:addShape(terrain)
-n2:addShape(banner)
+--n2:addShape(banner)
+n2:setWireframeMode(1)
+n2:setWireframeColor(0)
+-- n2:setFilled(false)
 
 local KSIZE = 4
 local sink = 0.4
@@ -147,7 +151,7 @@ local function randelt(a)
 end
 
 if lib3d.texture then
-    terrain:setTexture("assets/texture.png.u", true)
+--    terrain:setTexture("assets/texture.png.u", true)
 end
 
 local gfx = playdate.graphics
@@ -378,12 +382,16 @@ r = 0
 l = 0
 t = 0
 
-playdate.display.setRefreshRate(20)
+playdate.display.setRefreshRate(30)
 
 function playdate.AButtonDown()
     if lib3d.renderer.setInterlaceEnabled then
         lib3d.renderer.setInterlaceEnabled(not lib3d.renderer.getInterlaceEnabled())
     end
+end
+
+function playdate.BButtonDown()
+    freeze = not freeze
 end
 
 local kart = makeKart(true)
@@ -407,11 +415,15 @@ for i, kart in ipairs(npckarts) do
 end
 
 function playdate.update()
-    dt = max(0.05, min(0.15, playdate.getElapsedTime()))
-    playdate.resetElapsedTime()
-    kart:update()
-    for _, npckart in ipairs(npckarts) do
-        npckart:update()
+    if freeze then
+        dt = 0
+    else
+        dt = max(0.05, min(0.15, playdate.getElapsedTime()))
+        playdate.resetElapsedTime()
+        kart:update()
+        for _, npckart in ipairs(npckarts) do
+            npckart:update()
+        end
     end
     
     if kart.is_player then
@@ -429,8 +441,13 @@ function playdate.update()
         -- so we don't need this.
         gfx.clear(gfx.kColorBlack)
     end
-	scene:draw()
+    if playdate.buttonIsPressed(playdate.kButtonUp) then
+        scene:drawZBuff()
+    else
+  	    scene:draw()
+    end
     playdate.drawFPS(0,0)
+    second_screen.schedule_redraw()
 end
 
 playdate.resetElapsedTime()
